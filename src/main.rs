@@ -1,19 +1,44 @@
-use std::net::{TcpListener, IpAddr, Ipv4Addr};
+use std::{
+    net::{
+        TcpListener,
+        IpAddr,
+        Ipv4Addr,
+        TcpStream
+    }, 
+    fmt::Display,
+    io::{
+        BufReader,
+        BufRead,
+        Error, Write
+    }
+};
 
-struct
+pub struct
 ServerInfo {
     addr: IpAddr,
     port: String
+}
+
+impl Display for ServerInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", &self.addr, &self.port)
+    }
 }
 
 impl  ServerInfo {
     pub fn
     new() -> ServerInfo{
         let loopback = "127.0.0.1";
+        let port: &str = "6868";
         ServerInfo {
             addr: IpAddr::V4(loopback.parse::<Ipv4Addr>().unwrap()),
-            port: String::from("6868")
+            port: String::from(port)
         }
+    }
+
+    pub fn
+    config(&self) -> String {
+        format!("{}", self)
     }
 
     pub fn
@@ -31,9 +56,9 @@ impl  ServerInfo {
 mod server_info_tests {
     use super::*;
 
-    type Mock<'a> = Vec<&'a str>;
+    type IpV4List<'a> = Vec<&'a str>;
 
-    fn mock_v4<'a>() -> Mock<'a> {
+    fn mock_v4<'a>() -> IpV4List<'a> {
         let ip_list = vec![
             "28.85.62.177"   ,
             "104.62.25.152"  ,
@@ -51,22 +76,25 @@ mod server_info_tests {
     }
 
     #[test]
-    fn check_loopback_address() {
+    fn check_default_loopback_address_v4() {
         let server_info: ServerInfo = ServerInfo::new();
-        let loopback: IpAddr = IpAddr::V4(
-            "127.0.0.1".parse::<Ipv4Addr>().unwrap()
-        );
-        assert_eq!(server_info.addr, loopback)
+        assert_eq!(server_info.addr.is_loopback(), true)
+    }
+
+    #[test]
+    fn check_default_port() {
+        let server_info: ServerInfo = ServerInfo::new();
+        assert_eq!(server_info.port, "6868")
     }
 
 
     #[test]
-    fn get_server_address_v4_test() {
-        let mock: Mock = mock_v4();
+    fn check_server_address_v4_format() {
+        let ip_v4_list: IpV4List = mock_v4();
         let mut server_info = ServerInfo::new();
 
 
-        for ip in mock.iter() {
+        for ip in ip_v4_list.iter() {
             server_info.set_new_server_address_v4(ip);
             assert_eq!(
                 server_info.addr,
@@ -78,9 +106,31 @@ mod server_info_tests {
 }
 
 fn main() {
-    
+    let server_info: ServerInfo = ServerInfo::new();
 
+    let listener = TcpListener::bind(
+        server_info.config()
+    ).unwrap();
 
-    let listener = TcpListener::bind("127.0.0.1:9999").unwrap();
-
+    for stream in listener.incoming() {
+        let stream : TcpStream = stream.unwrap();
+        let request: TcpStream = stream.try_clone().unwrap();
+        handle_the_request(request);
+        handle_the_response(stream).unwrap();
+    }
 }
+
+fn handle_the_request(request: TcpStream) {
+    let buffer_reader = BufReader::new(&request);
+    let http_request : Vec<String> = buffer_reader
+        .lines()
+        .map(|result :Result<String, Error>| { result.unwrap()})
+        .take_while(|line: &String| { !line.is_empty() })
+        .collect();
+    println!("Request: {:#?}", http_request);  
+}
+
+fn handle_the_response(mut stream: TcpStream) -> std::io::Result<()> {
+    let http_response  = "HTTP/1.1 200 OK\r\n\r\n";
+    stream.write_all(http_response.as_bytes())
+} 
