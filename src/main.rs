@@ -15,7 +15,7 @@ use std::{
         Error
     },
     fs,
-    str,
+    str::{self},
     mem::{
         self,
         ManuallyDrop
@@ -121,17 +121,84 @@ fn main() {
         server_info.config()
     ).unwrap();
 
+
+    /*
+    OLD
+    */
+    // for stream in listener.incoming() {
+    //     let stream : TcpStream = stream.unwrap();
+    //     let mut request: TcpStream = stream.try_clone().unwrap();
+    //     let request = handle_the_request(&mut request);
+    //     let uri = get_uri(&*request[0]);
+    //     handle_the_response(stream, &uri).unwrap();
+    //     drop(uri)
+    // }
+
+    /*
+    NEW
+    */
     for stream in listener.incoming() {
-        let stream : TcpStream = stream.unwrap();
-        let mut request: TcpStream = stream.try_clone().unwrap();
-        let request = handle_the_request(&mut request);
-        let uri = get_uri(&*request[0]);
-        handle_the_response(stream, &uri).unwrap();
-        drop(uri)
+
+    }
+
+}
+
+type HttpRequest = Vec<String>;
+
+struct HttpResponse {
+    status: String,
+    contents: String
+}
+
+impl HttpResponse {
+    pub fn new() -> HttpResponse {
+        HttpResponse { 
+            status: String::new(),
+            contents: String::new()
+        }
     }
 }
 
+impl Display for HttpResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f, 
+            "{}\r\nContent-Length: {}\r\n\r\n{}",
+            self.status,
+            self.contents.len(),
+            self.contents
+        )
+    }
+}
 
+struct ClientData {
+    http_request : HttpRequest,
+    http_response: HttpResponse
+}
+
+trait ClientOperations {
+    fn handle_connection(stream: TcpStream) -> ClientData;
+    fn send_response(&self);
+}
+
+impl ClientOperations for ClientData {
+    fn handle_connection(mut stream: TcpStream) -> ClientData {
+        let buf_reader = BufReader::new(&mut stream);
+        let http_request: Vec<String> = buf_reader
+            .lines()
+            .map(|result| result.unwrap())
+            .take_while(|line| !line.is_empty())
+            .collect();
+        ClientData { 
+            http_request: http_request,
+            http_response: HttpResponse::new()
+        }
+    }
+    
+    fn send_response(&self) {
+        todo!()
+    }
+}
 
 fn get_uri(line: &str) -> &str {
     let x: Vec<&str> = line.split(' ').collect();
@@ -142,16 +209,6 @@ fn get_uri(line: &str) -> &str {
     }
 }
 
-// WHAT A FUCK THIS kkkkkkkkk ----- REFACTOR
-fn handle_the_request<'a>(request: &'a mut TcpStream) -> ManuallyDrop<Vec<String>> {
-    let buffer_reader = BufReader::new(request);
-    let http_request : ManuallyDrop<Vec<_>> = mem::ManuallyDrop::new(buffer_reader
-        .lines()
-        .map(|result :Result<String, Error>| { result.unwrap()})
-        .take_while(|line: &String| { !line.is_empty() })
-        .collect());
-    http_request
-}
 
 fn handle_the_response(mut stream: TcpStream, uri: &str) -> std::io::Result<()> {
     let status_line  = "HTTP/1.1 200 OK\r\n\r\n";
