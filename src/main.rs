@@ -1,3 +1,5 @@
+// REFACTOR THE ENTIRE CODE ------
+
 use std::{
     net::{
         TcpListener,
@@ -9,8 +11,15 @@ use std::{
     io::{
         BufReader,
         BufRead,
-        Error, Write
-    }
+        Write,
+        Error
+    },
+    fs,
+    str,
+    mem::{
+        self,
+        ManuallyDrop
+    },
 };
 
 pub struct
@@ -114,23 +123,44 @@ fn main() {
 
     for stream in listener.incoming() {
         let stream : TcpStream = stream.unwrap();
-        let request: TcpStream = stream.try_clone().unwrap();
-        handle_the_request(request);
-        handle_the_response(stream).unwrap();
+        let mut request: TcpStream = stream.try_clone().unwrap();
+        let request = handle_the_request(&mut request);
+        let uri = get_uri(&*request[0]);
+        handle_the_response(stream, &uri).unwrap();
+        drop(uri)
     }
 }
 
-fn handle_the_request(request: TcpStream) {
-    let buffer_reader = BufReader::new(&request);
-    let http_request : Vec<String> = buffer_reader
+
+
+fn get_uri(line: &str) -> &str {
+    let x: Vec<&str> = line.split(' ').collect();
+    if x[1] == "/" {
+        &"index.html"
+    } else {
+        x[1]
+    }
+}
+
+// WHAT A FUCK THIS kkkkkkkkk ----- REFACTOR
+fn handle_the_request<'a>(request: &'a mut TcpStream) -> ManuallyDrop<Vec<String>> {
+    let buffer_reader = BufReader::new(request);
+    let http_request : ManuallyDrop<Vec<_>> = mem::ManuallyDrop::new(buffer_reader
         .lines()
         .map(|result :Result<String, Error>| { result.unwrap()})
         .take_while(|line: &String| { !line.is_empty() })
-        .collect();
-    println!("Request: {:#?}", http_request);  
+        .collect());
+    http_request
 }
 
-fn handle_the_response(mut stream: TcpStream) -> std::io::Result<()> {
-    let http_response  = "HTTP/1.1 200 OK\r\n\r\n";
+fn handle_the_response(mut stream: TcpStream, uri: &str) -> std::io::Result<()> {
+    let status_line  = "HTTP/1.1 200 OK\r\n\r\n";
+    let contents = fs::read_to_string(uri).unwrap();
+    let length = contents.len();
+    
+    let http_response = format!(
+        "{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}"
+    );
+
     stream.write_all(http_response.as_bytes())
 } 
