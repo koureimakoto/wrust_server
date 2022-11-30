@@ -15,12 +15,10 @@ use std::{
         Error
     },
     fs,
-    str::{self},
-    mem::{
-        self,
-        ManuallyDrop
-    },
+    str::{self}
+    , time::Instant,
 };
+
 
 pub struct
 ServerInfo {
@@ -159,30 +157,31 @@ impl HttpResponse {
     }
 }
 
-impl Display for HttpResponse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f, 
-            "{}\r\nContent-Length: {}\r\n\r\n{}",
-            self.status,
-            self.contents.len(),
-            self.contents
-        )
-    }
-}
+// impl Display for HttpResponse {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(
+//             f, 
+//             "{}\r\nContent-Length: {}\r\n\r\n{}",
+//             self.status,
+//             self.contents.len(),
+//             self.contents
+//         )
+//     }
+// }
 
 struct ClientData {
+    stream: TcpStream,
     http_request : HttpRequest,
     http_response: HttpResponse
 }
 
 trait ClientOperations {
-    fn handle_connection(stream: TcpStream) -> ClientData;
-    fn send_response(&self);
+    fn handle_the_request(stream: TcpStream) -> ClientData;
+    fn send_response(&mut self);
 }
 
 impl ClientOperations for ClientData {
-    fn handle_connection(mut stream: TcpStream) -> ClientData {
+    fn handle_the_request(mut stream: TcpStream) -> ClientData {
         let buf_reader = BufReader::new(&mut stream);
         let http_request: Vec<String> = buf_reader
             .lines()
@@ -190,13 +189,19 @@ impl ClientOperations for ClientData {
             .take_while(|line| !line.is_empty())
             .collect();
         ClientData { 
-            http_request: http_request,
+            stream,
+            http_request : http_request,
             http_response: HttpResponse::new()
         }
     }
     
-    fn send_response(&self) {
-        todo!()
+    fn send_response(&mut self) {
+        let  uri: &str = get_uri(&self.http_request[0]);
+        let time_stamp = Instant::now();
+        self.http_response.status   = String::from("HTTP/1.1 200 OK\r\n\r\n");
+        self.http_response.contents = fs::read_to_string(uri).unwrap();
+
+        // println!("{}")
     }
 }
 
