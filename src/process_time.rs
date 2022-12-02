@@ -37,9 +37,9 @@ impl Date {
     }
     /// Parse Unix time second to Year/Months/Days/Hours/Minute/Seconds
     pub fn parse(&mut self) {
-        let total_years          : f64 = utc_to_years(self.utc);
+        let total_years          : f64 = epoch_to_years(self.utc);
         let truncated_total_years: f64 = total_years.trunc();
-        let total_leap           : f64 = curr_leap_count(total_years);
+        let total_leap           : f64 = curr_leap_counter(total_years);
         
 
         self.set_curr_year(truncated_total_years)
@@ -52,7 +52,7 @@ impl Date {
     }
 
     fn set_curr_mouths(&mut self, total_years: f64) {
-        let leap_count: f64 = curr_leap_count(total_years);
+        let leap_count: f64 = curr_leap_counter(total_years);
         let year_days : f64 = year_days_perc(total_years);
         let year_days : f64 = year_days * (365.0 - leap_count) as f64;
 

@@ -157,18 +157,6 @@ impl HttpResponse {
     }
 }
 
-// impl Display for HttpResponse {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(
-//             f, 
-//             "{}\r\nContent-Length: {}\r\n\r\n{}",
-//             self.status,
-//             self.contents.len(),
-//             self.contents
-//         )
-//     }
-// }
-
 struct ClientData {
     stream: TcpStream,
     http_request : HttpRequest,
