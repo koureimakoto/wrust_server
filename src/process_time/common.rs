@@ -1,14 +1,13 @@
 use std::time::Duration;
 use super::constants::{
     COMMON_MIDYEAR,
-    FLOAT_MASK,
-    YEAR_SECOND
+    YEAR_SECONDS,
+    LEAP_INTERVAL
 };
 
 pub fn
-    fetch_mouth_of_the_common_year(year_days: u32, months: &[[u32; 5]; 2]) -> u8 {
+fetch_mouth_of_the_common_year(year_days: u32, months: &[[u32; 5]; 2]) -> u8 {
     let mut month_count: u8 = 0;
-    let days = year_days;
 
     if year_days < COMMON_MIDYEAR {
         month_count = months_counter(&months[0], &year_days)
@@ -19,7 +18,7 @@ pub fn
 }
 
 pub fn
-    months_counter(months: &[u32; 5], year_days: &u32) -> u8 {
+months_counter(months: &[u32; 5], year_days: &u32) -> u8 {
     let mut month_count: u8 = 0;
     for days in months.iter() {
         if days < year_days {
@@ -30,16 +29,26 @@ pub fn
 }
 
 pub fn
-utc_to_years(utc: Duration) -> f64 {
-    utc.as_secs() as f64 / YEAR_SECOND as f64
+epoch_to_years(epoch: Duration) -> f64 {
+    epoch.as_secs() as f64 / YEAR_SECONDS as f64
 }
 
 pub fn
-curr_leap_count(total_years: f64) -> f64 {
-    total_years / 4.0
+curr_leap_counter(total_years: f64) -> f64 {
+    total_years / LEAP_INTERVAL
 }
 
 pub fn
 year_days_perc(total_years: f64) -> f64 {
-    ( total_years as u64 & FLOAT_MASK as u64 ) as f64
+    let year = total_years - total_years.trunc();
+
+    if let 0.0..=1.0 = year {
+        year
+    } else {
+        panic!("Year Percentage was out of range.")
+    }
 }
+
+#[cfg(test)]
+#[path ="common_test.rs"]
+pub mod common_test;
