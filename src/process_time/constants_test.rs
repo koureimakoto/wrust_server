@@ -1,6 +1,6 @@
 //! Doc test to preserve the constants definitions
 use super::{
-    YEAR_SECOND,
+    YEAR_SECONDS,
     COMMON_YEAR,
     LEAP_INTERVAL,
     COMMON_MIDYEAR, 
@@ -10,12 +10,12 @@ use super::{
 
 #[test]
 fn year_in_second_format() {
-    assert_eq!(YEAR_SECOND, 31536000)
+    assert_eq!(YEAR_SECONDS, 31536000)
 }
 
 #[test]
 fn leap_interval_pattern() {
-    assert_eq!(LEAP_INTERVAL, 4)
+    assert_eq!(LEAP_INTERVAL, 4.0)
 }
 
 #[test]
