@@ -20,7 +20,6 @@ fetch_month_of_year(leap: bool, year_days: &u32, months: &[[u32; 5]; 2]) -> u8 {
     }
 }
 
-
 pub fn
 months_counter(months: &[u32; 5], year_days: &u32) -> u8 {  
     if year_days > &(months[4] + 31) {
@@ -54,7 +53,7 @@ pub fn
 year_days_perc(total_years: f64) -> f64 {
     let year = total_years - total_years.trunc();
 
-    if let 0.0..=1.0 = year {
+    if year >= 0.0 {
         year
     } else {
         panic!("Year Percentage was out of range.")

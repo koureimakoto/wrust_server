@@ -150,18 +150,38 @@ fn months_of_the_leap_common_counter_second_half() {
 
 #[test]
 fn fetch_just_months_of_the_leap_year() {
-    assert_eq!( 1, fetch_month_of_year(true, &28, &MONTHS_OF_THE_LEAP));
-    assert_ne!( 2, fetch_month_of_year(true, &28, &MONTHS_OF_THE_LEAP));
+    let months = &MONTHS_OF_THE_LEAP;
 
-    assert_eq!( 7, fetch_month_of_year(true, &212, &MONTHS_OF_THE_LEAP));
-    assert_ne!( 8, fetch_month_of_year(true, &212, &MONTHS_OF_THE_LEAP));
+    assert_eq!( 1, fetch_month_of_year(true, &28, months));
+    assert_ne!( 2, fetch_month_of_year(true, &28, months));
 
-    assert_eq!( 8, fetch_month_of_year(true, &213, &MONTHS_OF_THE_LEAP));
-    assert_ne!( 9, fetch_month_of_year(true, &213, &MONTHS_OF_THE_LEAP));
+    assert_eq!( 7, fetch_month_of_year(true, &212, months));
+    assert_ne!( 8, fetch_month_of_year(true, &212, months));
 
-    assert_eq!( 12, fetch_month_of_year(true, &335, &MONTHS_OF_THE_LEAP));
-    assert_ne!( 12, fetch_month_of_year(true, &334, &MONTHS_OF_THE_LEAP));
-    assert_eq!( 12, fetch_month_of_year(true, &366, &MONTHS_OF_THE_LEAP));
+    assert_eq!( 8, fetch_month_of_year(true, &213, months));
+    assert_ne!( 9, fetch_month_of_year(true, &213, months));
+
+    assert_eq!( 12, fetch_month_of_year(true, &335, months));
+    assert_ne!( 12, fetch_month_of_year(true, &334, months));
+    assert_eq!( 12, fetch_month_of_year(true, &366, months));
+}
+
+#[test]
+fn fetch_just_months_of_the_common_year() {
+    let months = &MONTHS_OF_THE_COMMON;
+
+    assert_eq!( 1, fetch_month_of_year(false, &28, months));
+    assert_ne!( 2, fetch_month_of_year(false, &28, months));
+
+    assert_eq!( 7, fetch_month_of_year(false, &211, months));
+    assert_ne!( 8, fetch_month_of_year(false, &211, months));
+
+    assert_eq!( 8, fetch_month_of_year(false, &212, months));
+    assert_ne!( 9, fetch_month_of_year(false, &212, months));
+
+    assert_eq!( 12, fetch_month_of_year(false, &334, months));
+    assert_ne!( 12, fetch_month_of_year(false, &333, months));
+    assert_eq!( 12, fetch_month_of_year(false, &365, months));
 }
 
 #[test]
@@ -170,25 +190,8 @@ fn fetch_just_panic_of_the_leap_year() {
     assert_eq!( 12, fetch_month_of_year(true, &367, &MONTHS_OF_THE_LEAP));
 }
 
-
-#[test]
-fn fetch_just_months_of_the_common_year() {
-    assert_eq!( 1, fetch_month_of_year(false, &28, &MONTHS_OF_THE_LEAP));
-    assert_ne!( 2, fetch_month_of_year(false, &28, &MONTHS_OF_THE_LEAP));
-
-    assert_eq!( 7, fetch_month_of_year(false, &211, &MONTHS_OF_THE_LEAP));
-    assert_ne!( 8, fetch_month_of_year(false, &211, &MONTHS_OF_THE_LEAP));
-
-    assert_eq!( 8, fetch_month_of_year(false, &212, &MONTHS_OF_THE_LEAP));
-    assert_ne!( 9, fetch_month_of_year(false, &212, &MONTHS_OF_THE_LEAP));
-
-    assert_eq!( 12, fetch_month_of_year(false, &334, &MONTHS_OF_THE_LEAP));
-    assert_ne!( 12, fetch_month_of_year(false, &333, &MONTHS_OF_THE_LEAP));
-    assert_eq!( 12, fetch_month_of_year(false, &365, &MONTHS_OF_THE_LEAP));
-}
-
 #[test]
 #[should_panic]
 fn fetch_just_panic_of_the_common_year() {
-    assert_eq!( 12, fetch_month_of_year(true, &367, &MONTHS_OF_THE_LEAP));
+    assert_eq!( 12, fetch_month_of_year(true, &366, &MONTHS_OF_THE_COMMON));
 }
