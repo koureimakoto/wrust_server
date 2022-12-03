@@ -18,10 +18,18 @@ fetch_mouth_of_the_common_year(year_days: u32, months: &[[u32; 5]; 2]) -> u8 {
 }
 
 pub fn
-months_counter(months: &[u32; 5], year_days: &u32) -> u8 {
-    let mut month_count: u8 = 0;
+months_counter(months: &[u32; 5], year_days: &u32) -> u8 {  
+    if year_days > &(months[4] + 31) {
+        panic!("Limit of year days exceeded!")
+    }
+    
+    if *year_days <= 31 {
+        return 1
+    } 
+    
+    let mut month_count: u8 = 2;
     for days in months.iter() {
-        if days < year_days {
+        if  year_days >= days {
             month_count += 1;
         }
     }
