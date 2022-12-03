@@ -1,8 +1,8 @@
 use std::{panic, time::Duration};
 
-use crate::process_time::{common::months_counter, constants::MONTHS_OF_THE_LEAP};
+use crate::process_time::{common::months_counter, constants::{MONTHS_OF_THE_LEAP, MONTHS_OF_THE_COMMON}};
 
-use super::{year_days_perc, curr_leap_counter, epoch_to_years};
+use super::{year_days_perc, curr_leap_counter, epoch_to_years, fetch_month_of_year};
 
 #[test]
 fn mask_of_year_days_percentage_max_limit() {
@@ -46,80 +46,149 @@ fn convert_epoch_to_year() {
 
 #[test]
 fn months_of_the_leap_year_counter_first_half() {
-    const RULE: u32 = 15;
+    let months = &MONTHS_OF_THE_LEAP[0];
+    let rule: u32 = 15;
 
     // January
-    assert_eq!(1, months_counter(&MONTHS_OF_THE_LEAP[0],  &31));
+    assert_eq!(1, months_counter(months,  &31));
     // July
-    assert_eq!(7, months_counter(&MONTHS_OF_THE_LEAP[0], &182));
+    assert_eq!(7, months_counter(months, &212));
 
     // February .. July
-    for (index, month) in MONTHS_OF_THE_LEAP.iter().enumerate() {
+    for (index, month) in months.iter().enumerate() {
         assert_eq!(
             2 + index as u8,
-            months_counter(
-                &MONTHS_OF_THE_LEAP[0],
-                &(MONTHS_OF_THE_LEAP[0][index] - 1)
-            )
+            months_counter(months, &(month - rule))
         )
     }
-
-    // February .. July
-    for (index, month) in MONTHS_OF_THE_LEAP.iter().enumerate() {
-        assert_eq!(
-            2 + index as u8,
-            months_counter(
-                &MONTHS_OF_THE_LEAP[0],
-                &(MONTHS_OF_THE_LEAP[0][index] - RULE)
-            )
-        )
-    }
-
 }
 
 
 #[test]
 fn months_of_the_leap_year_counter_second_half() {
-    const RULE: u32 = 15;
+    let months = &MONTHS_OF_THE_LEAP[1];
+    let rule: u32 = 15;
+    let shim:  u8 =  5;
 
     // July
-    assert_eq!( 7, 5 + months_counter(&MONTHS_OF_THE_LEAP[1], &212));
+    assert_eq!( 7, shim + months_counter(months, &212));
     // August
-    assert_eq!( 8, 5 + months_counter(&MONTHS_OF_THE_LEAP[1], &213));
+    assert_eq!( 8, shim + months_counter(months, &213));
     // December
-    assert_eq!(12, 5 + months_counter(&MONTHS_OF_THE_LEAP[1], &335));
+    assert_eq!(12, shim + months_counter(months, &335));
 
     // July .. December
-    for (index, month) in MONTHS_OF_THE_LEAP.iter().enumerate() {
+    for (index, month) in months.iter().enumerate() {
         assert_eq!(
             7 + index as u8,
-            5 + months_counter(
-                &MONTHS_OF_THE_LEAP[1],
-                &(MONTHS_OF_THE_LEAP[1][index] - 1)
-            )
-        )
-    }
-
-    // July .. December
-    for (index, month) in MONTHS_OF_THE_LEAP.iter().enumerate() {
-        assert_eq!(
-            7 + index as u8,
-            5 + months_counter(
-                &MONTHS_OF_THE_LEAP[1],
-                &(MONTHS_OF_THE_LEAP[1][index] - RULE)
-            )
+            shim + months_counter(months, &(month - rule))
         )
     }
 
     // August .. December
-    for (index, month) in MONTHS_OF_THE_LEAP.iter().enumerate() {
+    for (index, month) in months.iter().enumerate() {
         assert_eq!(
             8 + index as u8,
-            5 + months_counter(
-                &MONTHS_OF_THE_LEAP[1],
-                &(MONTHS_OF_THE_LEAP[1][index] + RULE)
-            )
+            shim + months_counter(months, &(month + rule))
+        )
+    }
+}
+
+
+
+#[test]
+fn months_of_the_common_year_counter_first_half() {
+    let months = &MONTHS_OF_THE_COMMON[0];
+    let rule: u32 = 15;
+
+    // January
+    assert_eq!(1, months_counter(months,  &31));
+    // July
+    assert_eq!(7, months_counter(months, &211));
+
+    // February .. July
+    for (index, month) in months.iter().enumerate() {
+        assert_eq!(
+            2 + index as u8,
+            months_counter(months, &(month - rule))
+        )
+    }
+}
+
+
+#[test]
+fn months_of_the_leap_common_counter_second_half() {
+    let months = &MONTHS_OF_THE_COMMON[1];
+    let rule: u32 = 15;
+    let shim:  u8 =  5;
+
+    // July
+    assert_eq!( 7, shim + months_counter(months, &211));
+    // August
+    assert_eq!( 8, shim + months_counter(months, &212));
+    // December
+    assert_eq!(12, shim + months_counter(months, &334));
+
+    // July .. December
+    for (index, month) in months.iter().enumerate() {
+        assert_eq!(
+            7 + index as u8,
+            shim + months_counter(months, &(month - rule))
         )
     }
 
+    // August .. December
+    for (index, month) in months.iter().enumerate() {
+        assert_eq!(
+            8 + index as u8,
+            shim + months_counter(months, &(month + rule))
+        )
+    }
+}
+
+
+
+#[test]
+fn fetch_just_months_of_the_leap_year() {
+    assert_eq!( 1, fetch_month_of_year(true, &28, &MONTHS_OF_THE_LEAP));
+    assert_ne!( 2, fetch_month_of_year(true, &28, &MONTHS_OF_THE_LEAP));
+
+    assert_eq!( 7, fetch_month_of_year(true, &212, &MONTHS_OF_THE_LEAP));
+    assert_ne!( 8, fetch_month_of_year(true, &212, &MONTHS_OF_THE_LEAP));
+
+    assert_eq!( 8, fetch_month_of_year(true, &213, &MONTHS_OF_THE_LEAP));
+    assert_ne!( 9, fetch_month_of_year(true, &213, &MONTHS_OF_THE_LEAP));
+
+    assert_eq!( 12, fetch_month_of_year(true, &335, &MONTHS_OF_THE_LEAP));
+    assert_ne!( 12, fetch_month_of_year(true, &334, &MONTHS_OF_THE_LEAP));
+    assert_eq!( 12, fetch_month_of_year(true, &366, &MONTHS_OF_THE_LEAP));
+}
+
+#[test]
+#[should_panic]
+fn fetch_just_panic_of_the_leap_year() {
+    assert_eq!( 12, fetch_month_of_year(true, &367, &MONTHS_OF_THE_LEAP));
+}
+
+
+#[test]
+fn fetch_just_months_of_the_common_year() {
+    assert_eq!( 1, fetch_month_of_year(false, &28, &MONTHS_OF_THE_LEAP));
+    assert_ne!( 2, fetch_month_of_year(false, &28, &MONTHS_OF_THE_LEAP));
+
+    assert_eq!( 7, fetch_month_of_year(false, &211, &MONTHS_OF_THE_LEAP));
+    assert_ne!( 8, fetch_month_of_year(false, &211, &MONTHS_OF_THE_LEAP));
+
+    assert_eq!( 8, fetch_month_of_year(false, &212, &MONTHS_OF_THE_LEAP));
+    assert_ne!( 9, fetch_month_of_year(false, &212, &MONTHS_OF_THE_LEAP));
+
+    assert_eq!( 12, fetch_month_of_year(false, &334, &MONTHS_OF_THE_LEAP));
+    assert_ne!( 12, fetch_month_of_year(false, &333, &MONTHS_OF_THE_LEAP));
+    assert_eq!( 12, fetch_month_of_year(false, &365, &MONTHS_OF_THE_LEAP));
+}
+
+#[test]
+#[should_panic]
+fn fetch_just_panic_of_the_common_year() {
+    assert_eq!( 12, fetch_month_of_year(true, &367, &MONTHS_OF_THE_LEAP));
 }

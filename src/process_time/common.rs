@@ -6,16 +6,20 @@ use super::constants::{
 };
 
 pub fn
-fetch_mouth_of_the_common_year(year_days: u32, months: &[[u32; 5]; 2]) -> u8 {
-    let mut month_count: u8 = 0;
+fetch_month_of_year(leap: bool, year_days: &u32, months: &[[u32; 5]; 2]) -> u8 {
+    let leap: u32 = match leap {
+        true => 1,
+        _    => 0
+    };
+    let shim: u8 = 5;
 
-    if year_days < COMMON_MIDYEAR {
-        month_count = months_counter(&months[0], &year_days)
+    if *year_days < (COMMON_MIDYEAR + leap) {
+        months_counter(&months[0], &year_days)
     } else {
-        month_count = months_counter(&months[1], &year_days)
+        shim + months_counter(&months[1], &year_days)
     }
-    month_count
 }
+
 
 pub fn
 months_counter(months: &[u32; 5], year_days: &u32) -> u8 {  
