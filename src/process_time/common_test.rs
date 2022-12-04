@@ -1,8 +1,21 @@
-use std::{panic, time::Duration};
+use std::time::Duration;
 
-use crate::process_time::{common::months_counter, constants::{MONTHS_OF_THE_LEAP, MONTHS_OF_THE_COMMON}};
+use crate::process_time::{
+    common::months_counter,
+    constants::{
+        MONTHS_OF_THE_LEAP,
+        MONTHS_OF_THE_COMMON,
+        MONTHS_OF_THE_COMMON_YEAR
+    }
+};
 
-use super::{year_days_perc, curr_leap_counter, epoch_to_years, fetch_month_of_year};
+use super::{
+    year_days_perc,
+    curr_leap_counter,
+    epoch_to_years,
+    fetch_month_of_year,
+    fetch_month_and_day_of_the_year
+};
 
 #[test]
 fn mask_of_year_days_percentage_max_limit() {
@@ -45,6 +58,7 @@ fn convert_epoch_to_year() {
 }
 
 #[test]
+#[ignore = "deprecated"]
 fn months_of_the_leap_year_counter_first_half() {
     let months = &MONTHS_OF_THE_LEAP[0];
     let rule: u32 = 15;
@@ -65,6 +79,7 @@ fn months_of_the_leap_year_counter_first_half() {
 
 
 #[test]
+#[ignore = "deprecated"]
 fn months_of_the_leap_year_counter_second_half() {
     let months = &MONTHS_OF_THE_LEAP[1];
     let rule: u32 = 15;
@@ -97,6 +112,7 @@ fn months_of_the_leap_year_counter_second_half() {
 
 
 #[test]
+#[ignore = "deprecated"]
 fn months_of_the_common_year_counter_first_half() {
     let months = &MONTHS_OF_THE_COMMON[0];
     let rule: u32 = 15;
@@ -117,6 +133,7 @@ fn months_of_the_common_year_counter_first_half() {
 
 
 #[test]
+#[ignore = "deprecated"]
 fn months_of_the_leap_common_counter_second_half() {
     let months = &MONTHS_OF_THE_COMMON[1];
     let rule: u32 = 15;
@@ -149,6 +166,7 @@ fn months_of_the_leap_common_counter_second_half() {
 
 
 #[test]
+#[ignore = "deprecated"]
 fn fetch_just_months_of_the_leap_year() {
     let months = &MONTHS_OF_THE_LEAP;
 
@@ -167,6 +185,7 @@ fn fetch_just_months_of_the_leap_year() {
 }
 
 #[test]
+#[ignore = "deprecated"]
 fn fetch_just_months_of_the_common_year() {
     let months = &MONTHS_OF_THE_COMMON;
 
@@ -186,12 +205,55 @@ fn fetch_just_months_of_the_common_year() {
 
 #[test]
 #[should_panic]
+#[ignore = "deprecated"]
 fn fetch_just_panic_of_the_leap_year() {
     assert_eq!( 12, fetch_month_of_year(true, &367, &MONTHS_OF_THE_LEAP));
 }
 
 #[test]
 #[should_panic]
+#[ignore = "deprecated"]
 fn fetch_just_panic_of_the_common_year() {
     assert_eq!( 12, fetch_month_of_year(true, &366, &MONTHS_OF_THE_COMMON));
+}
+
+#[test]
+fn fetch_month_and_day_using_leap_year_days() {
+    let months = &MONTHS_OF_THE_COMMON_YEAR;
+
+    assert_eq!(
+        (1 as u8, 28 as u8),
+        fetch_month_and_day_of_the_year(true, &months, &28)
+    );
+
+    assert_eq!(
+        (2 as u8, 17 as u8),
+        fetch_month_and_day_of_the_year(true, &months, &48)
+    );
+
+    assert_eq!(
+        (3 as u8, 02 as u8),
+        fetch_month_and_day_of_the_year(true, &months, &62)
+    );
+    
+}
+
+#[test]
+fn fetch_month_and_day_using_leap_common_days() {
+    let months = &MONTHS_OF_THE_COMMON_YEAR;
+
+    assert_eq!(
+        (1 as u8, 28 as u8),
+        fetch_month_and_day_of_the_year(false, &months, &28)
+    );
+    assert_eq!(
+        (2 as u8, 17 as u8),
+        fetch_month_and_day_of_the_year(false, &months, &48)
+    );
+
+    assert_eq!(
+        (3 as u8, 3 as u8),
+        fetch_month_and_day_of_the_year(false, &months, &62)
+    );
+    
 }

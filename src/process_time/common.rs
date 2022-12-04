@@ -44,7 +44,10 @@ months_counter(months: &[u32; 5], year_days: &u32) -> u8 {
 pub fn
 fetch_month_and_day_of_the_year(leap: bool, months: &[u32; 12], year_days: &u32) -> (u8, u8) {
     if year_days > &months[MAX_MONTHS_SIZE] {
-        panic!("Limit of year days exceeded!")
+        panic!("Max Limit of year days exceeded!")
+    } else
+    if *year_days < 1 {
+        panic!("Min value of year days is 01!")
     }
 
     let leap: u32 = match leap {
@@ -52,16 +55,20 @@ fetch_month_and_day_of_the_year(leap: bool, months: &[u32; 12], year_days: &u32)
         _    => 0
     };
 
-    let mut month: u8 = 0;
-    let mut day  : u8 = 0;
+    let mut month: usize = 0;
 
-    for (index, month_days) in months.iter().enumerate() {
-        if year_days < &(month_days + leap) {
-            month = (index + 1) as u8;
-            day   = (*year_days - month_days) as u8;
-        }
+    'found: for (index, days) in months.iter().enumerate() {
+        if year_days < &(days + leap){
+            month = index;
+            break 'found
+        } 
     }
-    (month, day)
+
+    match month {
+        0 => ((month + 1) as u8, *year_days as u8),
+        1 => ((month + 1) as u8, (year_days - &months[ month - 1 ]) as u8),
+        _ => ((month + 1) as u8, (year_days - &months[ month - 1 ] - leap)  as u8 )
+    }
 }
 
 pub fn
