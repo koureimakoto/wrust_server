@@ -3,7 +3,7 @@ use std::{time::{
     SystemTime
 }};
 
-use self::common::*;
+use self::{common::*, constants::MONTHS_OF_THE_LEAP};
 
 pub mod constants;
 pub mod common;
@@ -13,7 +13,7 @@ pub mod common;
 pub struct
 Date {
     utc    : Duration,
-    year   : u16,
+    year   : u32,
     months : u8,
     days   : u8,
     hour   : u8,
@@ -41,26 +41,43 @@ impl Date {
         let truncated_total_years: f64 = total_years.trunc();
         let total_leap           : f64 = curr_leap_counter(total_years);
         
+        let year_days : f64 = year_days_perc(total_years);
+        let year_days : f64 = year_days * (365.0 - total_leap) as f64;
 
-        self.set_curr_year(truncated_total_years)
+        self.set_curr_year(truncated_total_years);
+        self.set_curr_mouths(&(year_days as u32));
 
 
     }
 
     fn set_curr_year(&mut self, total_years: f64) {
-        self.year = 1970 + total_years as u16;
+        self.year = 1970 + total_years as u32;
     }
 
-    fn set_curr_mouths(&mut self, total_years: f64) {
-        let leap_count: f64 = curr_leap_counter(total_years);
-        let year_days : f64 = year_days_perc(total_years);
-        let year_days : f64 = year_days * (365.0 - leap_count) as f64;
-
-        if self.is_leap() {
-
-        } 
+    fn set_curr_mouths(&mut self, year_days: &u32) {
+        self.months = if self.is_leap() {
+            fetch_month_of_year(
+                true,
+                year_days, 
+                &MONTHS_OF_THE_LEAP
+            )
+        } else {
+            fetch_month_of_year(
+                false,
+                &(self.year as u32), 
+                &MONTHS_OF_THE_LEAP
+            )
+        }
 
     }
+
+    // fn set_curr_days(&mut self, year_days: &u32) {
+    //     self.days = if self.is_leap() {
+    //         if self.months >=
+    //     } else {
+
+    //     }
+    // }
 
     fn is_leap(&self) -> bool {
         (self.year % 2) == 0

@@ -2,9 +2,10 @@ use std::time::Duration;
 use super::constants::{
     COMMON_MIDYEAR,
     YEAR_SECONDS,
-    LEAP_INTERVAL
+    LEAP_INTERVAL, MAX_MONTHS_SIZE
 };
 
+#[deprecated = "Inefficient! You should use fetch_month_and_day_of_the_year() instead"]
 pub fn
 fetch_month_of_year(leap: bool, year_days: &u32, months: &[[u32; 5]; 2]) -> u8 {
     let leap: u32 = match leap {
@@ -20,6 +21,7 @@ fetch_month_of_year(leap: bool, year_days: &u32, months: &[[u32; 5]; 2]) -> u8 {
     }
 }
 
+#[deprecated = "Inefficient! You should use fetch_month_and_day_of_the_year() instead"]
 pub fn
 months_counter(months: &[u32; 5], year_days: &u32) -> u8 {  
     if year_days > &(months[4] + 31) {
@@ -37,6 +39,29 @@ months_counter(months: &[u32; 5], year_days: &u32) -> u8 {
         }
     }
     month_count
+}
+
+pub fn
+fetch_month_and_day_of_the_year(leap: bool, months: &[u32; 12], year_days: &u32) -> (u8, u8) {
+    if year_days > &months[MAX_MONTHS_SIZE] {
+        panic!("Limit of year days exceeded!")
+    }
+
+    let leap: u32 = match leap {
+        true => 1,
+        _    => 0
+    };
+
+    let mut month: u8 = 0;
+    let mut day  : u8 = 0;
+
+    for (index, month_days) in months.iter().enumerate() {
+        if year_days < &(month_days + leap) {
+            month = (index + 1) as u8;
+            day   = (*year_days - month_days) as u8;
+        }
+    }
+    (month, day)
 }
 
 pub fn
